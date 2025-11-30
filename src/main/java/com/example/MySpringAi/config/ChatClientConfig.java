@@ -14,13 +14,16 @@ public class ChatClientConfig {
 
     @Bean("openaiChatClient")
     public ChatClient openaiChatClient(OpenAiChatModel openAiChatModel) {
-        // create a chat client with the OpenAiChatModel
-        return ChatClient.create(openAiChatModel);
+
+        return ChatClient.builder(openAiChatModel)
+                .defaultSystem("回答時請使用清楚、易理解且專業的繁體中文。")
+                .build();
     }
 
     @Bean("ollamaChatClient")
     public ChatClient ollmaChatClient(OllamaChatModel ollamaChatModel) {
-        //another way to create a chat client with the OllamaChatModel
-        return ChatClient.builder(ollamaChatModel).build();
+        return ChatClient.builder(ollamaChatModel)
+                .defaultSystem("回答時請使用清楚、易理解且專業的繁體中文。")
+                .build();
     }
 }
