@@ -1,17 +1,10 @@
 package com.example.MySpringAi.controller;
 
-import com.example.MySpringAi.payload.ChatRequestPayload;
-import com.example.MySpringAi.payload.AutoEmailResponsePayload;
+import com.example.MySpringAi.payload.GenericChatPayload;
 import org.springframework.ai.chat.client.ChatClient;
-import org.springframework.ai.chat.prompt.Prompt;
-import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @RestController
 @RequestMapping("/api")
@@ -35,14 +28,14 @@ public class GenericChatController {
 
     //openai api
     @PostMapping("/openai/chat")
-    public String openaiChat(@RequestBody ChatRequestPayload chatRequestPayload) {
-        return openaiChatClient.prompt(chatRequestPayload.message()).call().content();
+    public String openaiChat(@RequestBody GenericChatPayload genericChatPayload) {
+        return openaiChatClient.prompt(genericChatPayload.message()).call().content();
         // .prompt() 可以接受 1️⃣ 純文字字串 (String), 2️⃣ Message (UserMessage / SystemMessage / AssistantMessage), 3️⃣ Prompt 物件（完整 Prompt, 4️⃣ 包含 Tool / Function 調用的 Prompt
     }
 
     //ollama api
     @PostMapping("/ollama/chat")
-    public String ollamaChat(@RequestBody ChatRequestPayload chatRequestPayload) {
-        return ollamaChatClient.prompt(chatRequestPayload.message()).call().content();
+    public String ollamaChat(@RequestBody GenericChatPayload genericChatPayload) {
+        return ollamaChatClient.prompt(genericChatPayload.message()).call().content();
     }
 }
