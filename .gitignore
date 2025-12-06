@@ -35,3 +35,8 @@ build/
 ### Codex / Claude ###
 AGENTS.md
 CLAUDE.md
+
+### h2 ###
+*.mv.db
+*.lock.db
+*.trace.db

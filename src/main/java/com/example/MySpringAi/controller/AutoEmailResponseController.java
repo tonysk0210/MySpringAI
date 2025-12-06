@@ -20,8 +20,7 @@ import java.util.Map;
 @RequestMapping("/api")
 public class AutoEmailResponseController {
 
-    private final ChatClient openaiChatClient;
-    private final ChatClient ollamaChatClient;
+    private final ChatClient openaiChatClientWithoutMemory;
 
     /**
      * 這個方法會使用 Spring AI 的 PromptTemplate 來生成 Prompt，然後使用 ChatClient 來生成對應的 Response
@@ -30,32 +29,17 @@ public class AutoEmailResponseController {
     private Resource emailResponsePromptTemplateText;
 
     @Autowired
-    public AutoEmailResponseController(
-            @Qualifier("openaiChatClient") ChatClient openaiChatClient,
-            @Qualifier("ollamaChatClient") ChatClient ollamaChatClient
-    ) {
-        this.openaiChatClient = openaiChatClient;
-        this.ollamaChatClient = ollamaChatClient;
+    public AutoEmailResponseController(@Qualifier("openaiChatClient-withoutMemory") ChatClient openaiChatClientWithoutMemory) {
+        this.openaiChatClientWithoutMemory = openaiChatClientWithoutMemory;
     }
 
     //openai auto-generate email response given customer name & customer concern
     @PostMapping("/openai/emailResponse")
     public String openaiEmailResponse(@RequestBody AutoEmailResponsePayload autoEmailResponsePayload) {
-        return openaiChatClient.prompt()
+        return openaiChatClientWithoutMemory.prompt()
                 .user(promptUserSpec -> promptUserSpec.text(emailResponsePromptTemplateText)
                         .param("customerName", autoEmailResponsePayload.customerName())
                         .param("customerMessage", autoEmailResponsePayload.customerMessage()))
                 .call().content();
-    }
-
-    //ollama auto-generate email response given customer name & customer concern
-    @PostMapping("/ollama/emailResponse")
-    public Flux<String> ollamaEmailResponse(@RequestBody AutoEmailResponsePayload autoEmailResponsePayload) {
-        PromptTemplate promptTemplate = new PromptTemplate(emailResponsePromptTemplateText);
-        Prompt prompt = promptTemplate.create(Map.of(
-                "customerName", autoEmailResponsePayload.customerName(),
-                "customerMessage", autoEmailResponsePayload.customerMessage()
-        ));
-        return ollamaChatClient.prompt(prompt).stream().content(); // using Stream API to get the response
     }
 }

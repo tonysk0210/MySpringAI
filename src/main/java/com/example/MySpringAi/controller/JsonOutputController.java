@@ -22,42 +22,27 @@ import java.util.Map;
 @RequestMapping("/api")
 public class JsonOutputController {
 
-    private final ChatClient openaiChatClient;
-    private final ChatClient ollamaChatClient;
+    private final ChatClient openaiChatClientWithoutMemory;
 
     @Autowired
-    public JsonOutputController(
-            @Qualifier("openaiChatClient") ChatClient openaiChatClient,
-            @Qualifier("ollamaChatClient") ChatClient ollamaChatClient
-    ) {
-        this.openaiChatClient = openaiChatClient;
-        this.ollamaChatClient = ollamaChatClient;
+    public JsonOutputController(@Qualifier("openaiChatClient-withoutMemory") ChatClient openaiChatClientWithoutMemory) {
+        this.openaiChatClientWithoutMemory = openaiChatClientWithoutMemory;
     }
 
     // openai - convert llm text to JSON DTO
     @PostMapping("/openai/generateJsonDto")
     public ResponseEntity<CountryCitiesDto> openaiGenerateJsonDto(@RequestBody JsonOutputPayload jsonOutputPayload) {
-        CountryCitiesDto dto = openaiChatClient.prompt()
+        CountryCitiesDto dto = openaiChatClientWithoutMemory.prompt()
                 .user(jsonOutputPayload.message())
                 .call()
                 .entity(CountryCitiesDto.class); // content to JSON dto
         return ResponseEntity.ok(dto);
     }
 
-    // ollama - convert llm text to DTO in json form
-    @PostMapping("/ollama/generateJsonDto")
-    public ResponseEntity<CountryCitiesDto> ollamaGenerateJsonDto(@RequestBody JsonOutputPayload jsonOutputPayload) {
-        CountryCitiesDto dto = ollamaChatClient.prompt()
-                .user(jsonOutputPayload.message())
-                .call()
-                .entity(new BeanOutputConverter<>(CountryCitiesDto.class)); // content to JSON dto
-        return ResponseEntity.ok(dto);
-    }
-
     // openai - convert llm text to List in json form; LLM 自己決定 JSON 長什麼樣
     @PostMapping("/openai/generateList")
     public ResponseEntity<List<String>> openaiGenerateList(@RequestBody JsonOutputPayload jsonOutputPayload) {
-        List<String> list = openaiChatClient.prompt()
+        List<String> list = openaiChatClientWithoutMemory.prompt()
                 .user(jsonOutputPayload.message())
                 .call()
                 .entity(new ListOutputConverter()); // content to json List
@@ -67,7 +52,7 @@ public class JsonOutputController {
     // openai - convert llm text to Map in json form; LLM 自己決定 JSON 長什麼樣
     @PostMapping("/openai/generateMap")
     public ResponseEntity<Map<String, Object>> openaiGenerateMap(@RequestBody JsonOutputPayload jsonOutputPayload) {
-        Map<String, Object> map = openaiChatClient.prompt()
+        Map<String, Object> map = openaiChatClientWithoutMemory.prompt()
                 .user(jsonOutputPayload.message())
                 .call()
                 .entity(new MapOutputConverter()); // content to json List
@@ -77,13 +62,11 @@ public class JsonOutputController {
     // openai - convert llm text to List of dto in json form; LLM 自己決定 JSON 長什麼樣
     @PostMapping("/openai/generateListJsonDto")
     public ResponseEntity<List<CountryCitiesDto>> openaiGenerateListJsonDto(@RequestBody JsonOutputPayload jsonOutputPayload) {
-        List<CountryCitiesDto> listDto = openaiChatClient.prompt()
+        List<CountryCitiesDto> listDto = openaiChatClientWithoutMemory.prompt()
                 .user(jsonOutputPayload.message())
                 .call()
                 .entity(new ParameterizedTypeReference<List<CountryCitiesDto>>() {
                 }); // content to json List
         return ResponseEntity.ok(listDto);
     }
-
-
 }
