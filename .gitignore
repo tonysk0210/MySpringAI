@@ -35,6 +35,7 @@ build/
 ### Codex / Claude ###
 AGENTS.md
 CLAUDE.md
+GEMINI.md
 
 ### h2 ###
 *.mv.db

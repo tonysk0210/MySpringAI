@@ -2,8 +2,14 @@ package com.example.MySpringAi.component.rag;
 
 import jakarta.annotation.PostConstruct;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.reader.tika.TikaDocumentReader;
+import org.springframework.ai.transformer.splitter.TextSplitter;
+import org.springframework.ai.transformer.splitter.TokenTextSplitter;
 import org.springframework.ai.vectorstore.VectorStore;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -13,10 +19,16 @@ import java.util.List;
 public class RagDataLoader {
 
     private final VectorStore vectorStore;
+    private final VectorStore pdfVectorSotre;
+
+    @Value("classpath:/Eazybytes_HR_Policies.pdf")
+    Resource pdfFile;
 
     @Autowired
-    public RagDataLoader(VectorStore vectorStore) {
+    public RagDataLoader(VectorStore vectorStore, @Qualifier("pdfVectorStore") VectorStore pdfVectorSotre) {
+        // vectorStore: 預設 rag-collection；pdfVectorSotre: 指向 pdf-collection
         this.vectorStore = vectorStore;
+        this.pdfVectorSotre = pdfVectorSotre;
     }
 
     @PostConstruct
@@ -79,5 +91,17 @@ public class RagDataLoader {
         );
         List<Document> documents = sentences.stream().map(Document::new).toList(); // VectorStore 只吃 Document，不吃 String
         vectorStore.add(documents); // 把資料送進 Qdrant
+    }
+
+    @PostConstruct
+    public void loadPdfIntoVectorStore() {
+        // 讀取 classpath PDF 並轉成 Spring AI Document 列表
+        TikaDocumentReader reader = new TikaDocumentReader(pdfFile);
+        List<Document> documents = reader.get();
+        System.out.println("Document size: " + documents.size());
+
+        // 先切塊避免單一 chunk 過長，再批次寫入 pdf-collection
+        TextSplitter splitter = TokenTextSplitter.builder().withChunkSize(100).withMaxNumChunks(400).build();
+        pdfVectorSotre.add(splitter.split(documents));
     }
 }
