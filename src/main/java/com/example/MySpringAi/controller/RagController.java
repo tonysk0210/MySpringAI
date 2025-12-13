@@ -26,20 +26,26 @@ public class RagController {
     private final VectorStore vectorStore;
     private final VectorStore pdfVectorStore;
     private final RetrievalAugmentationAdvisor retrievalAugmentationAdvisor;
+    private final RetrievalAugmentationAdvisor trvilyRAAdvisor;
 
     @Value("classpath:/promptTemplate/RagPromptTemplate.st")
     Resource ragPromptTemplate;
 
-    @Value("classpath:/promptTemplate/ragPdfPromptTemplate.st")
-    Resource ragPdfPromptTemplate;
+    /*@Value("classpath:/promptTemplate/ragPdfPromptTemplate.st")
+    Resource ragPdfPromptTemplate;*/
 
     @Autowired
-    public RagController(@Qualifier("openaiChatClient-jdbcChatMemory") ChatClient chatClient, VectorStore vectorStore, @Qualifier("pdfVectorStore") VectorStore pdfVectorStore, RetrievalAugmentationAdvisor retrievalAugmentationAdvisor) {
+    public RagController(@Qualifier("openaiChatClient-jdbcChatMemory") ChatClient chatClient,
+                         VectorStore vectorStore,
+                         @Qualifier("pdfVectorStore") VectorStore pdfVectorStore,
+                         RetrievalAugmentationAdvisor retrievalAugmentationAdvisor,
+                         @Qualifier("TrvilyRAAdvisor") RetrievalAugmentationAdvisor trvilyRAAdvisor) {
         // 將 Spring AI 的 ChatClient 與向量資料庫元件注入，供 /rag 使用
         this.chatClient = chatClient;
         this.vectorStore = vectorStore;
         this.pdfVectorStore = pdfVectorStore;
         this.retrievalAugmentationAdvisor = retrievalAugmentationAdvisor;
+        this.trvilyRAAdvisor = trvilyRAAdvisor;
     }
 
     @PostMapping("/rag")
@@ -69,6 +75,15 @@ public class RagController {
         return chatClient.prompt()
                 .advisors(advisorSpec -> advisorSpec.param(CONVERSATION_ID, "ragPdf-" + userName))
                 .advisors(retrievalAugmentationAdvisor)
+                .user(genericChatPayload.message())
+                .call().content();
+    }
+
+    @PostMapping("/ragTavily")
+    public String Tavily(@RequestBody GenericChatPayload genericChatPayload, @RequestHeader("userName") String userName) {
+        return chatClient.prompt()
+                .advisors(advisorSpec -> advisorSpec.param(CONVERSATION_ID, "ragTavily-" + userName))
+                .advisors(trvilyRAAdvisor)
                 .user(genericChatPayload.message())
                 .call().content();
     }
