@@ -27,6 +27,7 @@ public class RagController {
     private final VectorStore pdfVectorStore;
     private final RetrievalAugmentationAdvisor retrievalAugmentationAdvisor;
     private final RetrievalAugmentationAdvisor trvilyRAAdvisor;
+    private final RetrievalAugmentationAdvisor preAndPostRAAdvisor;
 
     @Value("classpath:/promptTemplate/RagPromptTemplate.st")
     Resource ragPromptTemplate;
@@ -39,13 +40,15 @@ public class RagController {
                          VectorStore vectorStore,
                          @Qualifier("pdfVectorStore") VectorStore pdfVectorStore,
                          RetrievalAugmentationAdvisor retrievalAugmentationAdvisor,
-                         @Qualifier("TrvilyRAAdvisor") RetrievalAugmentationAdvisor trvilyRAAdvisor) {
+                         @Qualifier("TrvilyRAAdvisor") RetrievalAugmentationAdvisor trvilyRAAdvisor,
+                         @Qualifier("preAndPostRAAdvisor") RetrievalAugmentationAdvisor preAndPostRAAdvisor) {
         // 將 Spring AI 的 ChatClient 與向量資料庫元件注入，供 /rag 使用
         this.chatClient = chatClient;
         this.vectorStore = vectorStore;
         this.pdfVectorStore = pdfVectorStore;
         this.retrievalAugmentationAdvisor = retrievalAugmentationAdvisor;
         this.trvilyRAAdvisor = trvilyRAAdvisor;
+        this.preAndPostRAAdvisor = preAndPostRAAdvisor;
     }
 
     @PostMapping("/rag")
@@ -85,6 +88,15 @@ public class RagController {
                 .advisors(advisorSpec -> advisorSpec.param(CONVERSATION_ID, "ragTavily-" + userName))
                 .advisors(trvilyRAAdvisor)
                 .user(genericChatPayload.message())
+                .call().content();
+    }
+
+    @PostMapping("/preAndPostRAAdvisor")
+    public String preRetrieval(@RequestBody GenericChatPayload genericChatPayload, @RequestHeader("userName") String userName) {
+        return chatClient.prompt()
+                .advisors(advisorSpec -> advisorSpec.param(CONVERSATION_ID, "ragPrePostProcessing-" + userName))
+                .advisors(preAndPostRAAdvisor)
+                .user(genericChatPayload.message() + "\n\n(請根據以上內容，務必使用清楚、易理解且專業的繁體中文回答)")
                 .call().content();
     }
 }

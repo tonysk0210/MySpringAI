@@ -19,6 +19,4 @@ public class VectorStoreConfig {
                 .initializeSchema(true) //create collection if not exists
                 .build();
     }
-
-
 }
