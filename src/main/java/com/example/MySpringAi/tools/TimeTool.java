@@ -12,10 +12,11 @@ import java.time.ZoneId;
 @Component
 public class TimeTool {
 
-    @Tool(name = "getCurrentLocalTime", description = "get the current local time") // 把一個 Java 方法註冊成「可被 LLM 呼叫的工具（Tool）」
+    // returnDirect = true Tool 的回傳值「直接成為最終回應」，不再交回給 LLM 繼續生成。
+    @Tool(name = "getCurrentLocalTime", description = "get the current local time", returnDirect = true) // 把一個 Java 方法註冊成「可被 LLM 呼叫的工具（Tool）」
     public String getCurrentLocalTime() {
         log.info("Returning current local time");
-        return LocalTime.now().toString();
+        return "現在時間是: " + LocalTime.now().toString();
     }
 
     @Tool(name = "getCurrentTime", description = "get the current time in a specific time zone")
