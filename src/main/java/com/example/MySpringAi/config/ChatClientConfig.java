@@ -1,5 +1,6 @@
 package com.example.MySpringAi.config;
 
+import com.example.MySpringAi.tools.TimeTool;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.client.advisor.MessageChatMemoryAdvisor;
 import org.springframework.ai.chat.client.advisor.SimpleLoggerAdvisor;
@@ -51,6 +52,19 @@ public class ChatClientConfig {
         return ChatClient.builder(openAiChatModel)
                 .defaultOptions(chatOptions)
                 .defaultAdvisors(new SimpleLoggerAdvisor(), inMemoryAdvisor) // inMemoryAdvisor 加入預設 Advisor（攔截器）
+                .defaultSystem("回答時請使用清楚、易理解且專業的繁體中文。")
+                .build();
+    }
+
+    @Bean("openaiChatClient-jdbcChatMemory-toolCalling")
+    public ChatClient openaiToolCalling(OpenAiChatModel openAiChatModel, @Qualifier("openai-jdbcChatMemory") ChatMemory chatMemory, TimeTool timeTool) {
+        ChatOptions chatOptions = ChatOptions.builder().temperature(0.5).maxTokens(500).build();
+        Advisor jdbcChatMemoryAdvisor = MessageChatMemoryAdvisor.builder(chatMemory).build();
+
+        return ChatClient.builder(openAiChatModel)
+                .defaultOptions(chatOptions)
+                .defaultAdvisors(new SimpleLoggerAdvisor(), jdbcChatMemoryAdvisor)
+                .defaultTools(timeTool)
                 .defaultSystem("回答時請使用清楚、易理解且專業的繁體中文。")
                 .build();
     }

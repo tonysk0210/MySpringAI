@@ -21,11 +21,11 @@ public class BeanInspector {
         System.out.println("=== Inspecting JdbcChatMemoryRepository Beans ===");
 
         /*String[] beanNames = ctx.getBeanNamesForType(JdbcChatMemoryRepository.class);*/
-        String[] beanNames = ctx.getBeanDefinitionNames();
+        /*String[] beanNames = ctx.getBeanDefinitionNames();
 
         for (String name : beanNames) {
             System.out.println(" -> " + name);
-        }
+        }*/
 
         System.out.println("==================================================");
     }
