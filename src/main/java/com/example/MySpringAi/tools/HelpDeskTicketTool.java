@@ -19,6 +19,7 @@ public class HelpDeskTicketTool {
 
     private final HelpDeskTicketService service;
 
+    // 內部 framework + reflection so Tool's methods still gets called even not declared as public
     @Tool(name = "createTicket", description = "Create a HelpDesk support ticket", returnDirect = true)
     String createTicket(@ToolParam(description = "Details to create a Support ticket") HelpDeskTicketPayload payload, ToolContext toolContext) {
 
