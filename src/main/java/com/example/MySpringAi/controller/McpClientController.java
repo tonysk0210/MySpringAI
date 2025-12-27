@@ -5,6 +5,8 @@ import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.tool.ToolCallbackProvider;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -30,6 +32,20 @@ public class McpClientController {
                 .advisors(aSpec -> aSpec.param(CONVERSATION_ID, "mcp-" + userName))
                 .toolCallbacks(toolCallbackProvider) // LLM 可以使用 這個 ToolCallbackProvider 裡面定義的所有工具」
                 .user(payload.message())
+                .call().content();
+        return ResponseEntity.ok(response);
+    }
+
+    @Value("classpath:/promptTemplate/HelpDeskTicketPromptTemplate.st")
+    Resource helpDeskTicketPromptTemplate;
+
+    @PostMapping("/mcpServer")
+    public ResponseEntity<String> mcpServer(@RequestBody GenericChatPayload payload, @RequestHeader("userName") String userName) {
+        String response = chatClient.prompt()
+                .system(helpDeskTicketPromptTemplate)
+                .advisors(aSpec -> aSpec.param(CONVERSATION_ID, "mcpServer-" + userName)) //this is for chat memory
+                .toolCallbacks(toolCallbackProvider) // LLM 可以使用 這個 ToolCallbackProvider 裡面定義的所有工具」
+                .user(payload.message() + ". My userName is " + userName) //this userName is for sending to MCP server
                 .call().content();
         return ResponseEntity.ok(response);
     }
