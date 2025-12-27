@@ -49,4 +49,15 @@ public class McpClientController {
                 .call().content();
         return ResponseEntity.ok(response);
     }
+
+    @PostMapping("/mcpServerRemote")
+    public ResponseEntity<String> mcpServerRmoete(@RequestBody GenericChatPayload payload, @RequestHeader("userName") String userName) {
+        String response = chatClient.prompt()
+                .system(helpDeskTicketPromptTemplate)
+                .advisors(aSpec -> aSpec.param(CONVERSATION_ID, "mcpServerRemote-" + userName)) //this is for chat memory
+                .toolCallbacks(toolCallbackProvider) // LLM 可以使用 這個 ToolCallbackProvider 裡面定義的所有工具」includes: the ones defined in mcp-servers.json (stdio) and (see)
+                .user(payload.message() + ". My userName is " + userName) //this userName is for sending to MCP server
+                .call().content();
+        return ResponseEntity.ok(response);
+    }
 }
