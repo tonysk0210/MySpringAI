@@ -41,3 +41,6 @@ GEMINI.md
 *.mv.db
 *.lock.db
 *.trace.db
+
+### media ###
+*.mp3
